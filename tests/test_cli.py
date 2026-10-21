@@ -42,7 +42,7 @@ class CliTests(unittest.TestCase):
         cli, prompts, _ = self.session(["v"])
         actions = [Action("Lizard", "l"), Action("Spock", "v")]
         self.assertEqual(cli.get_user_strategy().probabilities_for_actions(actions), [0.0, 1.0])
-        self.assertEqual(prompts, ["Choose lizard (l), spock (v), save, or exit: "])
+        self.assertEqual(prompts, ["Your move [Lizard (L), Spock (V) · SAVE · EXIT]: "])
 
     def test_choices_and_results(self):
         cli, prompts, output = self.session(["bad", " S ", "paper", "R"])
@@ -53,9 +53,11 @@ class CliTests(unittest.TestCase):
         self.assertEqual([round_[0].action.name for round_ in current.rounds],
                          ["Scissors", "Paper", "Rock"])
         self.assertIn("Invalid choice. Try again.", output)
-        self.assertEqual(output[-9:], ["Human: Scissors", "Computer: Rock", "Loss",
-                                       "Human: Paper", "Computer: Rock", "Win",
-                                       "Human: Rock", "Computer: Rock", "Tie"])
+        self.assertEqual(output[-3:], [
+            "\nROUND 1\n• You played: Scissors\n• Computer played: Rock\n• Result: 🔴 LOSS",
+            "\nROUND 2\n• You played: Paper\n• Computer played: Rock\n• Result: 🟢 WIN",
+            "\nROUND 3\n• You played: Rock\n• Computer played: Rock\n• Result: 🟡 TIE",
+        ])
         self.assertEqual(len(prompts), 4)
 
     def test_save_then_exit(self):
@@ -119,7 +121,7 @@ class CliTests(unittest.TestCase):
                  patch("sys.argv", ["run.py", "--rounds", "2"]):
                 run.main()
             self.assertEqual(len(json.loads(storage.path.read_text())), 3)
-            self.assertEqual(sum("Choose" in prompt for prompt in prompts), 2)
+            self.assertEqual(sum("Your move" in prompt for prompt in prompts), 2)
             self.assertIn("Save game? (y/n): ", prompts)
 
     def test_main_exit_skips_final_save(self):

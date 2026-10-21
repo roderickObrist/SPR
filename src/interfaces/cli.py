@@ -1,6 +1,11 @@
 from collections.abc import Callable
+import sys
 
 from src.core import Action, Game, Interface, Storage, Strategy
+
+
+def _style(text: str, code: str = "1") -> str:
+    return f"\033[{code}m{text}\033[0m" if sys.stdout.isatty() else text
 
 
 class _Exit(Exception):
@@ -18,10 +23,10 @@ class HumanStrategy(Strategy):
             for key in (action.name, action.shortcut)
         }
         choices = ", ".join(
-            f"{action.name.lower()} ({action.shortcut})" for action in actions
+            f"{action.name} ({action.shortcut.upper()})" for action in actions
         )
         while True:
-            choice = input(f"Choose {choices}, save, or exit: ").strip().lower()
+            choice = input(f"Your move [{choices} · SAVE · EXIT]: ").strip().lower()
             if choice == "save":
                 self.save()
             elif choice == "exit":
@@ -50,12 +55,17 @@ class Cli(Interface):
             moves = self.game.do_round()
         except _Exit:
             return False
-        for move in moves:
-            print(f"{move.player.name}: {move.action.name}")
-        result = (
-            "Win" if moves[0].payoff > 0 else "Loss" if moves[0].payoff < 0 else "Tie"
+        result, color = (
+            ("🟢 WIN", "1;32") if moves[0].payoff > 0 else
+            ("🔴 LOSS", "1;31") if moves[0].payoff < 0 else
+            ("🟡 TIE", "1;33")
         )
-        print(result)
+        print(
+            f"\n{_style(f'ROUND {len(self.game.rounds)}')}\n"
+            f"• You played: {_style(moves[0].action.name)}\n"
+            f"• Computer played: {_style(moves[1].action.name)}\n"
+            f"• Result: {_style(result, color)}"
+        )
         return True
 
     def finish(self) -> None:
