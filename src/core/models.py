@@ -36,3 +36,7 @@ class Move:
     player: Player
     action: Action
     payoff: int
+
+    def __json__(self) -> tuple[str, int]:
+        """Return the action and payoff in a JSON-compatible form."""
+        return self.action.shortcut, self.payoff
