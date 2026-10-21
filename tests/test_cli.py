@@ -8,6 +8,7 @@ import run
 from src.core import Action, Player, PlayerType, Strategy
 from src.games.scissors_paper_rock import ScissorsPaperRockGame
 from src.interfaces import Cli
+from src.interfaces.cli import _style
 from src.storage import FileSystemStorage
 
 
@@ -24,6 +25,9 @@ def game(cli):
 
 
 class CliTests(unittest.TestCase):
+    def setUp(self):
+        self.enterContext(patch("src.interfaces.cli.sys.stdout.isatty", return_value=False))
+
     def session(self, answers):
         prompts, output = [], []
         choices = iter(answers)
@@ -134,6 +138,18 @@ class CliTests(unittest.TestCase):
                 run.main()
             self.assertFalse(storage.path.exists())
             self.assertEqual(len(prompts), 1)
+
+
+class StyleTests(unittest.TestCase):
+    def test_terminal_output_has_ansi_formatting(self):
+        with patch("src.interfaces.cli.sys.stdout.isatty", return_value=True):
+            self.assertEqual(_style("ROUND 1"), "\033[1mROUND 1\033[0m")
+            self.assertEqual(_style("WIN", "1;32"), "\033[1;32mWIN\033[0m")
+
+    def test_redirected_output_has_no_ansi_formatting(self):
+        with patch("src.interfaces.cli.sys.stdout.isatty", return_value=False):
+            self.assertEqual(_style("ROUND 1"), "ROUND 1")
+            self.assertEqual(_style("WIN", "1;32"), "WIN")
 
 
 if __name__ == "__main__":
