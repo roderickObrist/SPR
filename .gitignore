@@ -1,3 +1,6 @@
 __pycache__/
 *.pyc
 .saves/
+.python-version
+pyproject.toml
+uv.lock
