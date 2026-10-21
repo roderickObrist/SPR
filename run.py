@@ -3,7 +3,7 @@ from getpass import getuser
 
 from src.core import Player, PlayerType, Strategy
 from src.games.scissors_paper_rock import ScissorsPaperRockGame as Game
-from src.interfaces.cli import Cli
+from src.interfaces.udp import UdpCli as Cli
 from src.storage.file_system import FileSystemStorage
 
 
