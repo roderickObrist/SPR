@@ -2,13 +2,13 @@ import argparse
 from getpass import getuser
 
 from src.core import Player, PlayerType, Strategy
-from src.games.scissors_paper_rock import ScissorsPaperRockGame
+from src.games.scissors_paper_rock import ScissorsPaperRockGame as Game
 from src.interfaces.cli import Cli
 from src.storage.file_system import FileSystemStorage
 
 
 def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Play Scissors Paper Rock")
+    parser = argparse.ArgumentParser(description=f"Play {Game.name}")
     parser.add_argument(
         "--rounds", type=int, default=5, help="number of rounds to play (default: 5)"
     )
@@ -24,7 +24,7 @@ def main():
 
     strategy = cli.get_user_strategy()
 
-    game = ScissorsPaperRockGame(
+    game = Game(
         [
             Player(PlayerType.HUMAN, getuser(), strategy),
             Player(PlayerType.COMPUTER, "Computer", Strategy()),
