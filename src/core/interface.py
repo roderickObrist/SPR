@@ -17,8 +17,12 @@ class Interface(ABC):
         """Attach a game and its storage to this session."""
 
     @abstractmethod
-    def play_round(self) -> None:
-        """Play and present one round of the attached game."""
+    def play_round(self) -> bool:
+        """Play and present a round; return False when the player exits."""
+
+    @abstractmethod
+    def finish(self) -> None:
+        """Offer to save when the requested rounds are complete."""
 
     @abstractmethod
     def save_state(self) -> None:

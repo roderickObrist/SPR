@@ -34,7 +34,10 @@ def main():
     cli.load_game(game, FileSystemStorage())
 
     for _ in range(args.rounds):
-        cli.play_round()
+        if not cli.play_round():
+            break
+    else:
+        cli.finish()
 
 
 if __name__ == "__main__":

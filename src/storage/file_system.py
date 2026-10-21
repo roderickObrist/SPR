@@ -16,6 +16,9 @@ class FileSystemStorage(Storage):
         rounds = json.loads(self.path.read_text())
         actions = {action.shortcut: action for action in game.get_action_space()}
         game.rounds = [
-            [Move(player, actions[action], payoff) for player, (action, payoff) in zip(game.players, moves)]
+            [
+                Move(player, actions[action], payoff)
+                for player, (action, payoff) in zip(game.players, moves)
+            ]
             for moves in rounds
         ]
