@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 
 from .models import Action, Move, Player
 
+
 @dataclass
 class Game(ABC):
     """Rules and state for a two-player, turn-based game."""

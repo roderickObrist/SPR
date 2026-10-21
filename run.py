@@ -1,25 +1,24 @@
 from src.games.scissors_paper_rock import ScissorsPaperRockGame
 from src.core import Player, PlayerType, Strategy
 from time import sleep
+from getpass import getuser
+from src.interfaces.cli import Cli
 
-# from src.interfaces.cli import Cli
-# from src.storage.file_system import FileSystemStorage
+from src.storage.file_system import FileSystemStorage
 
 if __name__ == "__main__":
-    game = ScissorsPaperRockGame([
-        Player(PlayerType.COMPUTER, "Computer 1", Strategy()),
-        Player(PlayerType.COMPUTER, "Computer 2", Strategy())
-    ])
-    # strategy = RandomStrategy()
-    # storage = FileSystemStorage(game.name)
-    # cli = Cli(game, storage, strategy, title=game.name)
+    cli = Cli()
 
-    # cli.run()
+    strategy = cli.get_user_strategy()
 
-    print(game.name)
+    game = ScissorsPaperRockGame(
+        [
+            Player(PlayerType.HUMAN, getuser(), strategy),
+            Player(PlayerType.COMPUTER, "Computer", Strategy()),
+        ]
+    )
 
-    while True:
-        round = game.do_round()
-        print(round)
+    cli.load_game(game, FileSystemStorage())
 
-        sleep(10)
+    for i in range(5):
+        cli.play_round()

@@ -14,7 +14,6 @@ class PlayerType(Enum):
     COMPUTER = "COMPUTER"
 
 
-@dataclass
 class Strategy:
     def probabilities_for_actions(self, actions: list[Action]) -> list[float]:
         return [1 / len(actions) for _ in actions]
@@ -31,9 +30,9 @@ class Player:
         (action,) = choices(actions, weights=p)
         return action
 
+
 @dataclass
-class Move():
+class Move:
     player: Player
     action: Action
     payoff: int
-

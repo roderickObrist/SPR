@@ -30,5 +30,5 @@ class ScissorsPaperRockGame(Game):
             first.payoff = 1
             second.payoff = -1
         else:
-            first.payoff = 1
-            second.payoff = -1
+            first.payoff = -1
+            second.payoff = 1
