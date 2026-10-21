@@ -1,12 +1,25 @@
-from src.games.scissors_paper_rock import ScissorsPaperRockGame
-from src.core import Player, PlayerType, Strategy
-from time import sleep
+import argparse
 from getpass import getuser
-from src.interfaces.cli import Cli
 
+from src.core import Player, PlayerType, Strategy
+from src.games.scissors_paper_rock import ScissorsPaperRockGame
+from src.interfaces.cli import Cli
 from src.storage.file_system import FileSystemStorage
 
-if __name__ == "__main__":
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Play Scissors Paper Rock")
+    parser.add_argument(
+        "--rounds", type=int, default=5, help="number of rounds to play (default: 5)"
+    )
+    args = parser.parse_args()
+    if args.rounds < 1:
+        parser.error("--rounds must be a positive integer")
+    return args
+
+
+def main():
+    args = _parse_args()
     cli = Cli()
 
     strategy = cli.get_user_strategy()
@@ -20,5 +33,9 @@ if __name__ == "__main__":
 
     cli.load_game(game, FileSystemStorage())
 
-    for i in range(5):
+    for _ in range(args.rounds):
         cli.play_round()
+
+
+if __name__ == "__main__":
+    main()
