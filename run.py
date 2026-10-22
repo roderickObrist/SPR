@@ -2,7 +2,7 @@ import argparse
 from getpass import getuser
 
 from src.core import Player, PlayerType, Strategy
-from src.games.scissors_paper_rock import ScissorsPaperRockGame as Game
+from src.games.prisoners_dilemma import PrisonersDilemmaGame as Game
 from src.interfaces.cli import Cli
 from src.storage.file_system import FileSystemStorage
 
@@ -31,7 +31,7 @@ def main():
         ]
     )
 
-    cli.load_game(game, FileSystemStorage())
+    cli.load_game(game, FileSystemStorage(".saves/prisoners-dilemma.json"))
 
     for _ in range(args.rounds):
         if not cli.play_round():
