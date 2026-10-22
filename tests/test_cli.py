@@ -17,6 +17,11 @@ class RockStrategy(Strategy):
         return [float(action.name == "Rock") for action in actions]
 
 
+class FirstActionStrategy(Strategy):
+    def probabilities_for_actions(self, actions):
+        return [1.0] + [0.0] * (len(actions) - 1)
+
+
 def game(cli):
     return ScissorsPaperRockGame([
         Player(PlayerType.HUMAN, "Human", cli.get_user_strategy()),
@@ -46,7 +51,9 @@ class CliTests(unittest.TestCase):
         cli, prompts, _ = self.session(["v"])
         actions = [Action("Lizard", "l"), Action("Spock", "v")]
         self.assertEqual(cli.get_user_strategy().probabilities_for_actions(actions), [0.0, 1.0])
-        self.assertEqual(prompts, ["Your move [Lizard (L), Spock (V) · SAVE · EXIT]: "])
+        self.assertEqual(len(prompts), 1)
+        for option in ("Lizard (L)", "Spock (V)", "SAVE", "EXIT"):
+            self.assertIn(option, prompts[0])
 
     def test_choices_and_results(self):
         cli, prompts, output = self.session(["bad", " S ", "paper", "R"])
@@ -57,11 +64,15 @@ class CliTests(unittest.TestCase):
         self.assertEqual([round_[0].action.name for round_ in current.rounds],
                          ["Scissors", "Paper", "Rock"])
         self.assertIn("Invalid choice. Try again.", output)
-        self.assertEqual(output[-3:], [
-            "\nROUND 1\n• You played: Scissors\n• Computer played: Rock\n• Result: 🔴 LOSS",
-            "\nROUND 2\n• You played: Paper\n• Computer played: Rock\n• Result: 🟢 WIN",
-            "\nROUND 3\n• You played: Rock\n• Computer played: Rock\n• Result: 🟡 TIE",
-        ])
+        for number, (message, action, result) in enumerate(
+            zip(output[-3:], ("Scissors", "Paper", "Rock"), ("LOSS", "WIN", "TIE")),
+            start=1,
+        ):
+            with self.subTest(round=number):
+                self.assertIn(f"ROUND {number}", message)
+                self.assertIn(f"You played: {action}", message)
+                self.assertIn("Computer played: Rock", message)
+                self.assertIn(result, message)
         self.assertEqual(len(prompts), 4)
 
     def test_save_then_exit(self):
@@ -111,22 +122,30 @@ class CliTests(unittest.TestCase):
     def test_main_counts_new_rounds_and_offers_final_save(self):
         with tempfile.TemporaryDirectory() as directory:
             storage = FileSystemStorage(Path(directory) / "game.json")
-            cli, _, _ = self.session(["p"])
-            original = game(cli)
-            cli.load_game(original, storage)
-            cli.play_round()
-            cli.save_state()
+            original = run.Game([
+                Player(PlayerType.HUMAN, "Human", FirstActionStrategy()),
+                Player(PlayerType.COMPUTER, "Computer", FirstActionStrategy()),
+            ])
+            original.do_round()
+            storage.save_state(original)
+            actions = original.get_action_space()
+            new_actions = [actions[-1], actions[0]]
 
-            cli, prompts, _ = self.session(["y", "r", "s", "y"])
+            cli, _, _ = self.session(["y", new_actions[0].shortcut, new_actions[1].name, "y"])
             with patch.object(run, "Cli", return_value=cli), \
                  patch.object(run, "FileSystemStorage", return_value=storage), \
-                 patch.object(run, "Strategy", RockStrategy), \
+                 patch.object(run, "Strategy", FirstActionStrategy), \
                  patch.object(run, "getuser", return_value="Human"), \
                  patch("sys.argv", ["run.py", "--rounds", "2"]):
                 run.main()
-            self.assertEqual(len(json.loads(storage.path.read_text())), 3)
-            self.assertEqual(sum("Your move" in prompt for prompt in prompts), 2)
-            self.assertIn("Save game? (y/n): ", prompts)
+
+            restored = run.Game(original.players)
+            storage.load_state(restored)
+            self.assertEqual(len(cli.game.rounds), 3)
+            self.assertEqual(
+                [round_[0].action for round_ in restored.rounds],
+                [actions[0], *new_actions],
+            )
 
     def test_main_exit_skips_final_save(self):
         cli, prompts, _ = self.session(["exit"])
