@@ -13,7 +13,7 @@ class _Exit(Exception):
 
 
 class HumanStrategy(Strategy):
-    def __init__(self, save: Callable[[], None], read = input, write = print):
+    def __init__(self, save: Callable[[], None], read=input, write=print):
         self.save = save
         self.read = read
         self.write = write
@@ -64,9 +64,9 @@ class Cli(Interface):
         except _Exit:
             return False
         result, color = (
-            ("🟢 WIN", "1;32") if moves[0].payoff > 0 else
-            ("🔴 LOSS", "1;31") if moves[0].payoff < 0 else
-            ("🟡 TIE", "1;33")
+            ("🟢 WIN", "1;32")
+            if moves[0].payoff > 0
+            else ("🔴 LOSS", "1;31") if moves[0].payoff < 0 else ("🟡 TIE", "1;33")
         )
         self._write(
             f"\n{_style(f'ROUND {len(self.game.rounds)}')}\n"
