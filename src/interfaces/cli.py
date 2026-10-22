@@ -13,8 +13,10 @@ class _Exit(Exception):
 
 
 class HumanStrategy(Strategy):
-    def __init__(self, save: Callable[[], None]):
+    def __init__(self, save: Callable[[], None], read = input, write = print):
         self.save = save
+        self.read = read
+        self.write = write
 
     def probabilities_for_actions(self, actions: list[Action]) -> list[float]:
         options = {
@@ -26,7 +28,7 @@ class HumanStrategy(Strategy):
             f"{action.name} ({action.shortcut.upper()})" for action in actions
         )
         while True:
-            choice = input(f"Your move [{choices} · SAVE · EXIT]: ").strip().lower()
+            choice = self.read(f"Your move [{choices} · SAVE · EXIT]: ").strip().lower()
             if choice == "save":
                 self.save()
             elif choice == "exit":
@@ -34,12 +36,18 @@ class HumanStrategy(Strategy):
             elif choice in options:
                 return [float(action == options[choice]) for action in actions]
             else:
-                print("Invalid choice. Try again.")
+                self.write("Invalid choice. Try again.")
 
 
 class Cli(Interface):
+    def _read(self, prompt: str) -> str:
+        return input(prompt)
+
+    def _write(self, text: str) -> None:
+        print(text)
+
     def get_user_strategy(self) -> Strategy:
-        return HumanStrategy(self.save_state)
+        return HumanStrategy(self.save_state, self._read, self._write)
 
     def load_game(self, game: Game, storage: Storage) -> None:
         self.game, self.storage = game, storage
@@ -60,7 +68,7 @@ class Cli(Interface):
             ("🔴 LOSS", "1;31") if moves[0].payoff < 0 else
             ("🟡 TIE", "1;33")
         )
-        print(
+        self._write(
             f"\n{_style(f'ROUND {len(self.game.rounds)}')}\n"
             f"• You played: {_style(moves[0].action.name)}\n"
             f"• Computer played: {_style(moves[1].action.name)}\n"
@@ -74,16 +82,16 @@ class Cli(Interface):
 
     def save_state(self) -> None:
         self.storage.save_state(self.game)
-        print("Game saved.")
+        self._write("Game saved.")
 
     def load_state(self) -> None:
         self.storage.load_state(self.game)
 
     def _confirm(self, prompt: str) -> bool:
         while True:
-            answer = input(prompt).strip().lower()
+            answer = self._read(prompt).strip().lower()
             if answer in ("y", "yes"):
                 return True
             if answer in ("n", "no"):
                 return False
-            print("Please enter yes or no.")
+            self._write("Please enter yes or no.")

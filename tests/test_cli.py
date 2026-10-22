@@ -55,6 +55,32 @@ class CliTests(unittest.TestCase):
         for option in ("Lizard (L)", "Spock (V)", "SAVE", "EXIT"):
             self.assertIn(option, prompts[0])
 
+    def test_overridden_io_handles_moves_results_and_saving(self):
+        choices = iter(["bad", "paper", "maybe", "yes"])
+        output = []
+
+        class ScriptedCli(Cli):
+            def _read(self, prompt):
+                return next(choices)
+
+            def _write(self, text):
+                output.append(text)
+
+        with tempfile.TemporaryDirectory() as directory:
+            storage = FileSystemStorage(Path(directory) / "game.json")
+            cli = ScriptedCli()
+            with patch("builtins.input", side_effect=AssertionError("Unexpected console input")), \
+                 patch("builtins.print", side_effect=AssertionError("Unexpected console output")):
+                cli.load_game(game(cli), storage)
+                self.assertTrue(cli.play_round())
+                cli.finish()
+
+            self.assertEqual(len(json.loads(storage.path.read_text())), 1)
+        self.assertIn("Invalid choice. Try again.", output)
+        self.assertTrue(any("You played: Paper" in message for message in output))
+        self.assertIn("Please enter yes or no.", output)
+        self.assertIn("Game saved.", output)
+
     def test_choices_and_results(self):
         cli, prompts, output = self.session(["bad", " S ", "paper", "R"])
         with tempfile.TemporaryDirectory() as directory:
