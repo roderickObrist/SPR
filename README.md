@@ -36,4 +36,6 @@ To demonstrate the extensibility of this codebase, I have cherrypicked 4 extensi
 | `serial` | Serial interface (9600 baud, 8N1) | +33 / −1 | 2 | `git diff --minimal master...serial` |
 | `udp` | UDP interface on localhost port 9999 | +25 / −1 | 2 | `git diff --minimal master...udp` |
 
-Diff sizes show insertions and deletions relative to `master`. None of these branches modify `src/core`.
+Diff sizes show insertions and deletions relative to `master`.
+
+None of these branches modify `src/core`, they all add 1 file and modify run.py.
